@@ -1,0 +1,47 @@
+<odoo>
+    <data>
+        <!-- Inherit List View from student module using provided external ID -->
+        <record id="inherit_sales_student_list_view" model="ir.ui.view">
+            <field name="name">inherit.sales.student.list.view</field>
+            <field name="model">sales.student</field>
+            <field name="inherit_id" ref="student.wb_student_list_view"/>
+            <field name="arch" type="xml">
+                <!-- Correct the xpath to properly locate the list/tree element -->
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="mobile"/>
+                </xpath>
+            </field>
+
+        </record>
+
+        <!-- Inherit Form View from student module using provided external ID -->
+        <record id="inherit_sales_student_form_view" model="ir.ui.view">
+            <field name="name">inherit.sales.student.form.view</field>
+            <field name="model">sales.student</field>
+            <field name="inherit_id" ref="student.wb_student_form_view"/>
+            <field name="arch" type="xml">
+                <!-- Add the new mobile field to the form view -->
+                <xpath expr="//group" position="inside">
+                    <field name="mobile"/>
+                </xpath>
+                  <xpath expr="//field[@name='gender']" position="replace">
+                <field name="gender"/>
+            </xpath>
+            </field>
+        </record>
+
+        <!-- Action for sales.student -->
+        <record id="sales_student_action" model="ir.actions.act_window">
+            <field name="name">Sales Student</field>
+            <field name="res_model">sales.student</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Menu for sales.student -->
+        <menuitem id="sales_student_root_menu" name="Sales Student"/>
+        <menuitem id="sales_student_sub_menu"
+                  name="Sales Student List"
+                  parent="sales_student_root_menu"
+                  action="sales_student_action"/>
+    </data>
+</odoo>

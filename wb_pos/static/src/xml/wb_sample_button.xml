@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="point_of_sale.ControlButtons">
+        <t t-if="props.showRemainingButtons">
+            <div class="control-buttons control-buttons-modal d-grid gap-2 mt-2">
+                <button class="btn btn-secondary btn-lg py-5" t-on-click="() => this.clickWBSampleButton()">
+                    <i class="fa fa-superpowers me-1" role="img" aria-label="WB Sample Button" title="WB Sample Button"/>
+                    WB Sample Button
+                </button>
+            </div>
+        </t>
+    </t>
+</templates>
