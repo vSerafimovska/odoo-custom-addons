@@ -5,7 +5,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <header>
-                <!-- Custom Button for Report -->
+                
                 <button name="action_print_custom_report"
                         type="object"
                         string="Print Custom Report"
