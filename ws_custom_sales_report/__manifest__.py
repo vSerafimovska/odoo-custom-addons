@@ -10,7 +10,6 @@
     "data": [
         "report/custom_sales_report.xml",
         "views/sale_order_view.xml",
-
     ],
     "installable": True,
     "application": False,
