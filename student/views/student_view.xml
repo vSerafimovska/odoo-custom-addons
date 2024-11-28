@@ -5,6 +5,7 @@
          <field name="model">wb.student</field>
          <field name="arch" type="xml">
             <list string="Student List">
+
                  <field name="hobby_list" />
 <!--                <field name="hobby_list_ids"  />-->
                 <field name="id"/>
@@ -16,6 +17,7 @@
                 <field name="student_fees" />
                 <field name="discount_fees" />
                 <field name="final_fees" />
+
             </list>
          </field>
         </record>
@@ -31,6 +33,7 @@
                 <button name="custom_method" type="object" string="Custom Method" />
                 <button name="duplicate_records" type="object" string="Duplicate records (Create)" />
                 <button name="delete_records" type="object" string="Delete records (Unlink)" />
+                <button name="generate_excel_report" type="object" string="Download Excel Report" />
             </header>
             <group>
                 <group>

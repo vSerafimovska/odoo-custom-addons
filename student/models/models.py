@@ -2,25 +2,36 @@
 from odoo import fields, models, api
 from odoo.exceptions import UserError
 import time
+import io
+import base64
+
+# import odoo.tools
+import xlsxwriter
+
 
 class School(models.Model):
     _name = "wb.school"
     _description = "This is school profile."
 
-
-
     school_image = fields.Image("School Image", max_width=128, max_height=128)
     name = fields.Char("Name")
     invoice_id = fields.Many2one("account.move")
-    invoice_user_id = fields.Many2one("res.users", related="invoice_id.invoice_user_id", store=True)
+    invoice_user_id = fields.Many2one(
+        "res.users", related="invoice_id.invoice_user_id", store=True
+    )
     invoice_date = fields.Date(related="invoice_id.invoice_date")
     student_list = fields.One2many("wb.student", "school_id", string="Students")
-    ref_field_id = fields.Reference(selection=[('wb.school','School'),
-                                     ('wb.student','Student'),
-                                     ('wb.hobby','Hobby'),
-                                     ('sale.order','Sales'),
-                                     ('account.move','Invoice'),
-                                     ('purchase.order','Purchase')], string="reference")
+    ref_field_id = fields.Reference(
+        selection=[
+            ("wb.school", "School"),
+            ("wb.student", "Student"),
+            ("wb.hobby", "Hobby"),
+            ("sale.order", "Sales"),
+            ("account.move", "Invoice"),
+            ("purchase.order", "Purchase"),
+        ],
+        string="reference",
+    )
 
     binary_field = fields.Binary("Binary field")
     binary_file_name = fields.Char("Upload File")
@@ -79,6 +90,7 @@ class School(models.Model):
         print("Unlink method logic finished")
         return rtn
 
+
 class Hobby(models.Model):
     _name = "wb.hobby"
     _description = "This is hobby profile."
@@ -93,26 +105,22 @@ class Student(models.Model):
     def delete_records(self):
         print(self)
 
-
         school_record = self.env["wb.school"].browse(45)
-
 
         if school_record.exists():
 
             is_deleted = school_record.unlink()
-            print(f"Record deleted: {is_deleted}")  # Output will be True if deletion is successful
+            print(
+                f"Record deleted: {is_deleted}"
+            )  # Output will be True if deletion is successful
         else:
             raise UserError(f"Record set is not available {school_record}")
             print("instance or record is not available.")
-
-
-
 
     def duplicate_records(self):
         print(self)
         duplicate_record = self.copy()
         print(duplicate_record)
-
 
     @api.returns("self", lambda value: value.id)
     def copy(self, default=None):
@@ -122,14 +130,16 @@ class Student(models.Model):
         print(rtn)
         return rtn
 
-
-
-
-    hobby_list = fields.Many2many("wb.hobby","student_hobby_list_relation","student_id","hobby_id")
+    hobby_list = fields.Many2many(
+        "wb.hobby", "student_hobby_list_relation", "student_id", "hobby_id"
+    )
     # hobby_list_ids = fields.Many2many("wb.hobby")
-    school_id = fields.Many2one(comodel_name="wb.school", string="schoool", help="enter school id")
-    joining_date = fields.Datetime("Join date!", default=fields.Datetime.now(), copy=False)
-
+    school_id = fields.Many2one(
+        comodel_name="wb.school", string="schoool", help="enter school id"
+    )
+    joining_date = fields.Datetime(
+        "Join date!", default=fields.Datetime.now(), copy=False
+    )
 
     # joining_date = fields.Date("Date", default=fields.Date.today())
     #
@@ -139,18 +149,17 @@ class Student(models.Model):
     school_data = fields.Json("JSON FEED")
 
     @api.model
-
     def _get_vip_list(self):
-        return [('a','A'), ('b','B')]
+        return [("a", "A"), ("b", "B")]
 
-    gender = fields.Selection(
-        [('male','Male'), ('female','Female')]
-    )
+    gender = fields.Selection([("male", "Male"), ("female", "Female")])
 
     advance_gender = fields.Selection("get_gender_list")
-    vip_gender=fields.Selection("_get_vip_list")
+    vip_gender = fields.Selection("_get_vip_list")
 
-    student_fees = fields.Float("Student total fees", default=3.2, help="help", index=True)
+    student_fees = fields.Float(
+        "Student total fees", default=3.2, help="help", index=True
+    )
     discount_fees = fields.Float("Discount")
 
     roll_number = fields.Integer("Roll NUmber 2")
@@ -164,44 +173,95 @@ class Student(models.Model):
     name4 = fields.Char("Name4")
 
     student_name = fields.Char("STD", size=5)
-    address = fields.Text("Student Address Label", help="Enter here student address", default="Hello student address...")
+    address = fields.Text(
+        "Student Address Label",
+        help="Enter here student address",
+        default="Hello student address...",
+    )
 
-    address_html = fields.Html(string="Address HTML Field",
-                               #required=1,
-                               #default="<h1>This is the default value from backend<h1/>",
-                               help="field for help",
-                               copy="False")
+    address_html = fields.Html(
+        string="Address HTML Field",
+        # required=1,
+        # default="<h1>This is the default value from backend<h1/>",
+        help="field for help",
+        copy="False",
+    )
 
-    final_fees = fields.Float("Final Fees", compute="_compute_final_fees_calc", store=True)
+    final_fees = fields.Float(
+        "Final Fees", compute="_compute_final_fees_calc", store=True
+    )
 
     compute_address_html = fields.Html(string="Compute address field")
 
     @api.onchange("address_html")
-
     def onchange_address_html_field(self):
         for record in self:
             record.compute_address_html = record.address_html
 
-
-    @api.onchange("student_fees","discount_fees")
+    @api.onchange("student_fees", "discount_fees")
     def _compute_final_fees_calc(self):
         for record in self:
             record.final_fees = record.student_fees - record.discount_fees
 
     def get_gender_list(self):
-        return [('male','Male'),
-                ('female','Female')]
+        return [("male", "Male"), ("female", "Female")]
 
     def json_data_store(self):
-        self.school_data = {"name":self.name, "id":self.id, "fees":self.student_fees, "g":self.gender}
-
+        self.school_data = {
+            "name": self.name,
+            "id": self.id,
+            "fees": self.student_fees,
+            "g": self.gender,
+        }
 
     def custom_method(self):
         print("Clicked!")
 
-        data = [{"name":"Weblearns record 1"},
-                {"name":"Weblearns record 2"},
-                {"name":"Weblearns record 3"},
-                {"name":"Weblearns record 4"}]
+        data = [
+            {"name": "Weblearns record 1"},
+            {"name": "Weblearns record 2"},
+            {"name": "Weblearns record 3"},
+            {"name": "Weblearns record 4"},
+        ]
 
         self.env["wb.school"].create(data)
+
+    def generate_excel_report(self):
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet("Students")
+
+        headers = ["Name", "Roll Number", "Fees", "Final Fees", "Gender"]
+        for col, header in enumerate(headers):
+            sheet.write(0, col, header)
+
+        row = 1
+        for student in self:
+            sheet.write(row, 0, student.name or "")
+            sheet.write(row, 1, student.roll_number or "")
+            sheet.write(row, 2, student.student_fees or 0.0)
+            sheet.write(row, 3, student.final_fees or 0.0)
+            sheet.write(row, 4, student.gender or "")
+            row += 1
+
+        workbook.close()
+        output.seek(0)
+
+        report_name = "Student_Report.xlsx"
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": report_name,
+                "type": "binary",
+                "datas": base64.b64encode(output.read()),
+                "store_fname": report_name,
+                "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }
+        )
+        output.close()
+
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{attachment.id}?download=true",
+            "target": "new",
+        }
